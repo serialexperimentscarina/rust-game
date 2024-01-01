@@ -16,6 +16,7 @@ pub struct App {
     rotation: f64,
     x: f64,
     y: f64,
+    score: i64,
 }
 
 impl App {
@@ -24,20 +25,16 @@ impl App {
 
         const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
         const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
+        const YELLOW: [f32; 4] = [1.0, 1.0, 0.0, 1.0];
 
         let square = rectangle::square(0.0, 0.0, 50.0);
-        let rotation = self.rotation;
         let x = self.x;
         let y = self.y;
 
         self.gl.draw(args.viewport(), |c, gl| {
             clear(BLACK, gl);
 
-            let transform = c
-                .transform
-                .trans(x, y)
-                .rot_rad(rotation)
-                .trans(-25.0, -25.0);
+            let transform = c.transform.trans(x, y).trans(-25.0, -25.0);
 
             rectangle(WHITE, square, transform, gl);
         });
@@ -72,8 +69,9 @@ fn main() {
     let mut app = App {
         gl: GlGraphics::new(opengl),
         rotation: 0.0,
-        x: 300.0,
-        y: 30.0,
+        x: 430.0,
+        y: 390.0,
+        score: 0,
     };
     let mut events = Events::new(EventSettings::new());
     while let Some(e) = events.next(&mut window) {
