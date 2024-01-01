@@ -8,14 +8,18 @@ use opengl_graphics::{GlGraphics, OpenGL};
 use piston::event_loop::{EventSettings, Events};
 use piston::input::{RenderArgs, RenderEvent, UpdateArgs, UpdateEvent};
 use piston::window::WindowSettings;
-use piston::Key;
 use piston::{Button, PressEvent};
+use piston::{Key, ReleaseEvent};
+
+const WIDTH: f64 = 860.0;
+const HEIGTH: f64 = 780.0;
 
 pub struct App {
     gl: GlGraphics,
-    rotation: f64,
     x: f64,
     y: f64,
+    vel_x: i32,
+    vel_y: i32,
     score: i64,
 }
 
@@ -41,16 +45,55 @@ impl App {
     }
 
     fn update(&mut self, args: &UpdateArgs) {
-        self.rotation += 2.0 * args.dt;
+        if (self.vel_x == 1 && self.x < WIDTH) {
+            if (self.x < (WIDTH - 5.0)) {
+                self.x += 2.5
+            } else {
+                self.x = WIDTH - 5.0
+            }
+        }
+        if (self.vel_x == -1 && self.x > 25.0) {
+            if (self.x > (25.0 + 2.5)) {
+                self.x -= 2.5
+            } else {
+                self.x = 25.0
+            }
+        }
+        if (self.vel_y == 1 && self.y < HEIGTH) {
+            if (self.y < (HEIGTH - 5.0)) {
+                self.y += 2.5
+            } else {
+                self.y = HEIGTH - 5.0
+            }
+        }
+        if (self.vel_y == -1 && self.y > 25.0) {
+            if (self.y > (25.0 + 2.5)) {
+                self.y -= 2.5
+            } else {
+                self.y = 25.0
+            }
+        }
     }
 
-    fn move_player(&mut self, button: &Button) {
+    fn press_key(&mut self, button: &Button) {
         if let Button::Keyboard(key) = *button {
             match key {
-                Key::Up => self.y -= 10.0,
-                Key::Left => self.x -= 10.0,
-                Key::Right => self.x += 10.0,
-                Key::Down => self.y += 10.0,
+                Key::Up => self.vel_y = -1,
+                Key::Down => self.vel_y = 1,
+                Key::Left => self.vel_x = -1,
+                Key::Right => self.vel_x = 1,
+                _ => (),
+            }
+        }
+    }
+
+    fn release_key(&mut self, button: &Button) {
+        if let Button::Keyboard(key) = *button {
+            match key {
+                Key::Up => self.vel_y = 0,
+                Key::Down => self.vel_y = 0,
+                Key::Left => self.vel_x = 0,
+                Key::Right => self.vel_x = 0,
                 _ => (),
             }
         }
@@ -60,7 +103,7 @@ impl App {
 fn main() {
     let opengl = OpenGL::V3_2;
 
-    let mut window: Window = WindowSettings::new("game-test", [860, 780])
+    let mut window: Window = WindowSettings::new("game-test", [WIDTH, HEIGTH])
         .graphics_api(opengl)
         .exit_on_esc(true)
         .build()
@@ -68,16 +111,22 @@ fn main() {
 
     let mut app = App {
         gl: GlGraphics::new(opengl),
-        rotation: 0.0,
-        x: 430.0,
-        y: 390.0,
+        x: WIDTH / 2.0,
+        y: HEIGTH / 2.0,
+        vel_x: 0,
+        vel_y: 0,
         score: 0,
     };
     let mut events = Events::new(EventSettings::new());
     while let Some(e) = events.next(&mut window) {
         if let Some(args) = e.press_args() {
-            app.move_player(&args);
+            app.press_key(&args);
         }
+
+        if let Some(args) = e.release_args() {
+            app.release_key(&args);
+        }
+
         if let Some(args) = e.render_args() {
             app.render(&args);
         }
