@@ -10,6 +10,7 @@ use piston::input::{RenderArgs, RenderEvent, UpdateArgs, UpdateEvent};
 use piston::window::WindowSettings;
 use piston::{Button, PressEvent};
 use piston::{Key, ReleaseEvent};
+use rand::Rng;
 
 const WIDTH: f64 = 860.0;
 const HEIGTH: f64 = 780.0;
@@ -22,22 +23,23 @@ pub struct App {
     vel_y: i32,
     score: i64,
 }
+pub struct Coin {
+    gl: GlGraphics,
+    x: f64,
+    y: f64,
+}
 
 impl App {
     fn render(&mut self, args: &RenderArgs) {
         use graphics::*;
 
-        const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
         const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
-        const YELLOW: [f32; 4] = [1.0, 1.0, 0.0, 1.0];
 
         let square = rectangle::square(0.0, 0.0, 50.0);
         let x = self.x;
         let y = self.y;
 
         self.gl.draw(args.viewport(), |c, gl| {
-            clear(BLACK, gl);
-
             let transform = c.transform.trans(x, y).trans(-25.0, -25.0);
 
             rectangle(WHITE, square, transform, gl);
@@ -100,6 +102,33 @@ impl App {
     }
 }
 
+impl Coin {
+    fn randomize_pos(&mut self) {
+        let mut rng = rand::thread_rng();
+
+        self.x = rng.gen_range(30.0..WIDTH - 30.0);
+        self.y = rng.gen_range(30.0..HEIGTH - 30.0);
+    }
+
+    fn render(&mut self, args: &RenderArgs) {
+        use graphics::*;
+
+        const YELLOW: [f32; 4] = [1.0, 1.0, 0.0, 1.0];
+        const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
+
+        let square = rectangle::square(0.0, 0.0, 30.0);
+        let x = self.x;
+        let y = self.y;
+
+        self.gl.draw(args.viewport(), |c, gl| {
+            clear(BLACK, gl);
+            let transform = c.transform.trans(x, y).trans(-25.0, -25.0);
+
+            rectangle(YELLOW, square, transform, gl);
+        });
+    }
+}
+
 fn main() {
     let opengl = OpenGL::V3_2;
 
@@ -117,6 +146,14 @@ fn main() {
         vel_y: 0,
         score: 0,
     };
+    let mut coin = Coin {
+        gl: GlGraphics::new(opengl),
+        x: WIDTH / 2.0,
+        y: HEIGTH / 2.0,
+    };
+
+    coin.randomize_pos();
+
     let mut events = Events::new(EventSettings::new());
     while let Some(e) = events.next(&mut window) {
         if let Some(args) = e.press_args() {
@@ -128,11 +165,19 @@ fn main() {
         }
 
         if let Some(args) = e.render_args() {
+            coin.render(&args);
             app.render(&args);
         }
 
         if let Some(args) = e.update_args() {
             app.update(&args);
+
+            if (((app.x - 30.0) < coin.x) && (coin.x < (app.x + 30.0))) {
+                if (((app.y - 30.0) < coin.y) && (coin.y < (app.y + 30.0))) {
+                    app.score += 1;
+                    coin.randomize_pos();
+                }
+            }
         }
     }
 }
