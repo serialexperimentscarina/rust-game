@@ -122,4 +122,12 @@ impl Coin {
             rectangle(YELLOW, square, transform, gl);
         });
     }
+
+    pub fn update(&mut self, app: &App) {
+        if ((app.x - 30.0) < self.x) && (self.x < (app.x + 30.0)) {
+            if ((app.y - 30.0) < self.y) && (self.y < (app.y + 30.0)) {
+                self.randomize_pos();
+            }
+        }
+    }
 }

@@ -57,13 +57,7 @@ fn main() {
 
         if let Some(_args) = e.update_args() {
             app.update();
-
-            if ((app.x - 30.0) < coin.x) && (coin.x < (app.x + 30.0)) {
-                if ((app.y - 30.0) < coin.y) && (coin.y < (app.y + 30.0)) {
-                    app.score += 1;
-                    coin.randomize_pos();
-                }
-            }
+            coin.update(&app);
         }
     }
 }
